@@ -5,6 +5,8 @@ import java.util.Map;
 public final class ApplicationConstants {
     private ApplicationConstants() {}
 
+    public static final String INVALID_TIME_FORMAT = "INVALID TIME FORMAT";
+    public static final String INVALID_TIME_FORMAT_USE_HH_MM = "Invalid time format. Please use HH:mm.";
     public static final String TIME_TEMPLATE = "%s %s %s";
     public static final String MIDNIGHT = "midnight";
     public static final String NOON = "noon";
