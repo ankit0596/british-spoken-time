@@ -17,6 +17,21 @@ repositories {
 	mavenCentral()
 }
 
+sourceSets {
+	intTest {
+		java.srcDir file('src/intTest/java')
+		resources.srcDir file('src/intTest/resources')
+		compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+		runtimeClasspath += output + compileClasspath
+	}
+}
+
+configurations {
+	intTestImplementation.extendsFrom testImplementation
+	intTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -27,6 +42,18 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
+	intTestImplementation 'org.springframework.boot:spring-boot-starter-test'
+	intTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+}
+
+tasks.register('intTest', Test) {
+	description = 'Runs integration tests.'
+	group = 'verification'
+	testClassesDirs = sourceSets.intTest.output.classesDirs
+	classpath = sourceSets.intTest.runtimeClasspath
+	shouldRunAfter test
+	useJUnitPlatform()
 }
 
 tasks.named('test') {
