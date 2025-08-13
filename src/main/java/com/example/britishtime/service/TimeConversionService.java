@@ -1,9 +1,9 @@
 package com.example.britishtime.service;
 
-import com.example.britishtime.dto.SpokenTimeResponseDto;
+import com.example.britishtime.dto.SpokenTimeResponse;
 
 import java.time.LocalTime;
 
 public interface TimeConversionService {
-    SpokenTimeResponseDto toSpokenTime(LocalTime time);
+    SpokenTimeResponse toSpokenTime(LocalTime time);
 }

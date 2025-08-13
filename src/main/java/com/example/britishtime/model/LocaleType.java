@@ -5,10 +5,10 @@ import lombok.Getter;
 
 @Getter
 public enum LocaleType {
-    BRITISH("british"),
-    GERMAN("german"),
-    SPANISH("spanish");
-
+    BRITISH("british");
+    //may add further values in future like:
+    //GERMAN("german"),
+    //SPANISH("spanish")
     private final String key;
 
     LocaleType(String key) {

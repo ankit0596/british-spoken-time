@@ -8,7 +8,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Error {
-    private String input;
-    private String errorCode;
+    private String error;
     private String message;
 }
