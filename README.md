@@ -159,15 +159,6 @@ Run tests with:
 ./gradlew test
 ```
 
-
-## 🧑‍💻 Interview Reflection
-This project demonstrates:
-- Clean separation of concerns
-- Use of design patterns (Strategy, Factory, Singleton, Builder)
-- Spring Boot best practices
-- Extensibility
-- Thoughtful error handling
-
 ## 📚 Future Enhancements
 - Support for AM/PM and 12-hour formats
 - Internationalization (i18n)
