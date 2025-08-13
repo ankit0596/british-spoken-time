@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class SpokenTimeResponseDto {
+public class SpokenTimeResponse {
     private String input;
     private String spokenTime;
 }

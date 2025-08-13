@@ -1,91 +1,89 @@
 package com.example.britishtime.service.impl;
 
-import com.example.britishtime.dto.SpokenTimeResponseDto;
-import com.example.britishtime.service.BritishTimeService;
+import com.example.britishtime.dto.SpokenTimeResponse;
+import com.example.britishtime.factory.TimePhraseStrategyFactory;
+import com.example.britishtime.strategy.TimePhraseStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalTime;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BritishTimeServiceImplTest {
 
-    private BritishTimeService service;
+    @Mock
+    private TimePhraseStrategyFactory strategyFactory;
+
+    @Mock
+    private TimePhraseStrategy mockStrategy;
+
+    private BritishTimeServiceImpl britishTimeService;
 
     @BeforeEach
     void setUp() {
-        service = new BritishTimeServiceImpl();
+        MockitoAnnotations.openMocks(this);
+        britishTimeService = new BritishTimeServiceImpl(strategyFactory);
     }
 
-    @Test
-    @DisplayName("Should return 'midnight' for 00:00")
-    void testMidnight() {
-        SpokenTimeResponseDto response = service.toSpokenTime(LocalTime.of(0, 0));
-        assertEquals("midnight", response.getSpokenTime());
+
+    private Stream<Arguments> timeScenarios() {
+        return Stream.of(
+                Arguments.of(0, 0, "midnight"),
+                Arguments.of(12, 0, "noon"),
+                Arguments.of(10, 0, "ten o'clock"),
+                Arguments.of(10, 30, "half past ten"),
+                Arguments.of(10, 15, "quarter past ten"),
+                Arguments.of(10, 29, "twenty nine past ten"),
+                Arguments.of(10, 31, "twenty nine to eleven"),
+                Arguments.of(23, 59, "one to midnight")
+        );
     }
 
-    @Test
-    @DisplayName("Should return 'noon' for 12:00")
-    void testNoon() {
-        SpokenTimeResponseDto response = service.toSpokenTime(LocalTime.of(12, 0));
-        assertEquals("noon", response.getSpokenTime());
+    @DisplayName("Should correctly delegate to strategy for different time scenarios")
+    @ParameterizedTest(name = "Given {0}:{1} should return \"{2}\"")
+    @MethodSource("timeScenarios")
+    void testToSpokenTime_UsesCorrectStrategy(int hour, int minute, String expectedPhrase) {
+        // Arrange
+        LocalTime time = LocalTime.of(hour, minute);
+        SpokenTimeResponse expectedResponse = new SpokenTimeResponse(time.toString(), expectedPhrase);
+
+        // Generic stubbing so any hour/minute gets the same mockStrategy
+        when(strategyFactory.getStrategy(anyInt(), anyInt())).thenReturn(mockStrategy);
+        when(mockStrategy.toWords(anyInt(), anyInt())).thenReturn(expectedResponse);
+
+        // Act
+        SpokenTimeResponse actualResponse = britishTimeService.toSpokenTime(time);
+
+        // Assert
+        assertEquals(expectedPhrase, actualResponse.getSpokenTime());
+        verify(strategyFactory).getStrategy(hour, minute);
+        verify(mockStrategy).toWords(hour, minute);
     }
 
-    @Test
-    @DisplayName("Should return 'two o'clock' for 02:00")
-    void testExactHour() {
-        SpokenTimeResponseDto response = service.toSpokenTime(LocalTime.of(2, 0));
-        assertEquals("two o'clock", response.getSpokenTime());
+    private Stream<Arguments> invalidTimes() {
+        return Stream.of(
+                Arguments.of((LocalTime) null)
+        );
     }
 
-    @Test
-    @DisplayName("Should return 'quarter past two' for 02:15")
-    void testQuarterPast() {
-        SpokenTimeResponseDto response = service.toSpokenTime(LocalTime.of(2, 15));
-        assertEquals("quarter past two", response.getSpokenTime());
-    }
-
-    @Test
-    @DisplayName("Should return 'half past two' for 02:30")
-    void testHalfPast() {
-        SpokenTimeResponseDto response = service.toSpokenTime(LocalTime.of(2, 30));
-        assertEquals("half past two", response.getSpokenTime());
-    }
-
-    @Test
-    @DisplayName("Should return 'quarter to three' for 02:45")
-    void testQuarterTo() {
-        SpokenTimeResponseDto response = service.toSpokenTime(LocalTime.of(2, 45));
-        assertEquals("quarter to three", response.getSpokenTime());
-    }
-
-    @Test
-    @DisplayName("Should return 'twenty two past two' for 02:22")
-    void testRandomPastTime() {
-        SpokenTimeResponseDto response = service.toSpokenTime(LocalTime.of(2, 22));
-        assertEquals("twenty-two past two", response.getSpokenTime());
-    }
-
-    @Test
-    @DisplayName("Should return 'twenty two to three' for 02:38")
-    void testRandomToTime() {
-        SpokenTimeResponseDto response = service.toSpokenTime(LocalTime.of(2, 38));
-        assertEquals("twenty-two to three", response.getSpokenTime());
-    }
-
-    @Test
-    @DisplayName("Should correctly wrap hour around 12 to 1")
-    void testWrapAroundToNextHour() {
-        SpokenTimeResponseDto response = service.toSpokenTime(LocalTime.of(12, 45));
-        assertEquals("quarter to one", response.getSpokenTime());
-    }
-
-    @Test
-    @DisplayName("Should correctly convert 11:59 to 'one to twelve'")
-    void testOneToTwelve() {
-        SpokenTimeResponseDto response = service.toSpokenTime(LocalTime.of(11, 59));
-        assertEquals("one to twelve", response.getSpokenTime());
+    @DisplayName("Should throw NullPointerException for invalid inputs")
+    @ParameterizedTest(name = "Given time={0} should throw NPE")
+    @MethodSource("invalidTimes")
+    void testToSpokenTime_InvalidInputs(LocalTime time) {
+        assertThrows(NullPointerException.class, () -> britishTimeService.toSpokenTime(time));
     }
 }
