@@ -4,6 +4,6 @@ import com.example.britishtime.dto.SpokenTimeResponseDto;
 
 import java.time.LocalTime;
 
-public interface BritishTimeService extends TimeConversionService{
+public interface TimeConversionService {
     SpokenTimeResponseDto toSpokenTime(LocalTime time);
 }
